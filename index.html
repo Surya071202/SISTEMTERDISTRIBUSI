@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #075E54;
+            padding: 10px;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: #e5ddd5;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #dcf8c6;
+            border-radius: 8px;
+            max-width: 70%;
+            transition: opacity 0.5s ease; /* Menambahkan efek transisi */
+        }
+
+        .chat-message.sent {
+            background-color: #dcf8c6;
+            margin-left: auto;
+        }
+
+        .chat-message.received {
+            background-color: #fff;
+            margin-right: auto;
+        }
+
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        .chat-footer input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .chat-footer button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .chat-footer button:hover {
+            background-color: #128C7E;
+        }
+
+        .role-selection {
+            margin: 10px;
+            text-align: center;
+        }
+
+        .role-selection label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            Simple Chat App
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- Pesan akan muncul di sini -->
+        </div>
+
+        <div class="role-selection">
+            <label for="role">Select Role:</label>
+            <select id="role">
+                <option value="sent">Sender</option>
+                <option value="received">Receiver</option>
+            </select>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" id="messageInput" placeholder="Type a message">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Simulasi localStorage untuk menyimpan pesan
+        let messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+
+        // Fungsi untuk memuat dan menampilkan pesan
+        function loadMessages() {
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            chatMessagesDiv.innerHTML = ''; // Kosongkan pesan yang ada
+
+            messages.forEach((msg, index) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('chat-message');
+                messageDiv.classList.add(msg.type === 'sent' ? 'sent' : 'received');
+                messageDiv.textContent = msg.text;
+
+                chatMessagesDiv.appendChild(messageDiv);
+
+                // Atur waktu penghapusan pesan (contoh: 5 detik)
+                setTimeout(() => {
+                    messageDiv.style.opacity = '0'; // Membuat pesan memudar
+                    setTimeout(() => {
+                        // Hapus pesan dari tampilan dan dari array
+                        chatMessagesDiv.removeChild(messageDiv);
+                        messages.splice(index, 1); // Hapus pesan dari array
+                        localStorage.setItem('chatMessages', JSON.stringify(messages)); // Simpan perubahan
+                    }, 500); // Tunggu waktu transisi sebelum menghapus elemen
+                }, 5000); // Waktu tunggu sebelum pesan dihapus (5 detik)
+            });
+
+            // Scroll otomatis ke bawah
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        // Fungsi untuk mengirim pesan
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value;
+
+            if (messageText.trim() === '') {
+                return; // Jika pesan kosong, tidak melakukan apa-apa
+            }
+
+            const roleSelect = document.getElementById('role');
+            const role = roleSelect.value; // "sent" atau "received"
+
+            // Simpan pesan ke array messages
+            messages.push({ type: role, text: messageText });
+
+            // Simpan ke localStorage
+            localStorage.setItem('chatMessages', JSON.stringify(messages));
+
+            // Kosongkan input setelah mengirim
+            messageInput.value = '';
+
+            // Muat ulang pesan
+            loadMessages();
+        }
+
+        // Fungsi untuk menghapus riwayat chat setelah waktu tertentu
+        function clearChatHistory() {
+            localStorage.removeItem('chatMessages'); // Hapus riwayat dari localStorage
+            messages = []; // Kosongkan array messages
+            loadMessages(); // Muat ulang tampilan chat
+        }
+
+        // Muat pesan saat pertama kali halaman dimuat
+        window.onload = function() {
+            loadMessages();
+            setTimeout(clearChatHistory, 15000); // Hapus riwayat chat setelah 15 detik
+        };
+    </script>
+
+</body>
+</html>
